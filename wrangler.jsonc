@@ -3,6 +3,10 @@
   "workers_dev": true,
   "preview_urls": false,
   "compatibility_date": "2026-11-01",
+  "routes": [
+    { "pattern": "forestverify.com", "custom_domain": true },
+    { "pattern": "www.forestverify.com", "custom_domain": true }
+  ],
   "assets": {
     "directory": "./",
     "not_found_handling": "404-page"
