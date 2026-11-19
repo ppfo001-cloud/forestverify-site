@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ForestVerify</title>
+<meta name="description" content="Audit-proof MRV for ARR forest carbon projects under VM0047. Every number sourced, every decision traceable.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-1 -1 34 33'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='0'%3E%3Cstop offset='0' stop-color='%239A35F6'/%3E%3Cstop offset='1' stop-color='%236648F6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M7 0 L27 0.5 L22 11 L32 11 L24.5 22 L18 31 L16 31 L15 22 L6 22 L11 12 L0 12 Z' fill='url(%23g)' stroke='url(%23g)' stroke-width='1' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="fonts/fonts.css">
+<style>
+:root {
+  /* Layout idea: a quiet white page that reads like a well-kept field ledger; one dark forest band carries the proof. */
+  --paper: #FFFFFF;
+  --stone: #F4F5F1;
+  --ink: #17231E;
+  --muted: #5B6660;
+  --line: #E1E5DF;
+  --forest: #1B3A2F;
+  --bronze: #8A6420;
+  --gold: #E3B868;
+  --font-sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-serif: "IBM Plex Serif", Georgia, serif;
+  --wrap: 1240px;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 18px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3 { text-wrap: balance; margin: 0; font-weight: 600; letter-spacing: -0.02em; }
+p { margin: 0; }
+a { color: inherit; }
+a:focus-visible, .btn:focus-visible { outline: 2px solid var(--bronze); outline-offset: 3px; }
+.wrap { max-width: var(--wrap); margin: 0 auto; padding: 0 28px; }
+.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--bronze);
+}
+.section { padding: 112px 0; }
+.section-head { display: grid; gap: 18px; max-width: 760px; margin-bottom: 56px; }
+.section-head h2 { font-size: clamp(32px, 4vw, 46px); line-height: 1.12; }
+.lede { font-size: 20px; color: var(--muted); max-width: 62ch; }
+
+/* Nav */
+.nav { position: sticky; top: 0; z-index: 10; background: rgba(255,255,255,0.92); backdrop-filter: blur(8px); border-bottom: 1px solid transparent; }
+.nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 72px; gap: 24px; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 19px; text-decoration: none; letter-spacing: -0.01em; }
+.nav-links { display: flex; align-items: center; gap: 32px; font-size: 15px; }
+.nav-links a { text-decoration: none; color: var(--muted); }
+.nav-links a:hover { color: var(--ink); }
+.nav-links a.btn-primary, .nav-links a.btn-primary:hover { color: #fff; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 13px 22px; border-radius: 8px;
+  font-size: 16px; font-weight: 500; text-decoration: none;
+  transition: background 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+.btn-primary { background: var(--forest); color: #fff; }
+.btn-primary:hover { background: #24493B; }
+.btn-ghost { color: var(--ink); border: 1px solid var(--line); }
+.btn-ghost:hover { border-color: var(--ink); }
+.nav .btn { padding: 10px 18px; font-size: 15px; }
+
+/* Hero */
+.hero { padding: 88px 0 72px; }
+.hero .wrap { display: grid; grid-template-columns: 0.82fr 1.4fr; gap: 56px; align-items: center; }
+.hero h1 { font-size: clamp(40px, 4.4vw, 58px); line-height: 1.04; letter-spacing: -0.035em; margin: 22px 0 26px; }
+.hero h1 em { display: block; font-family: var(--font-serif); font-style: italic; font-weight: 400; color: var(--forest); letter-spacing: -0.01em; }
+.hero .lede { margin-bottom: 36px; }
+.cta-row { display: flex; flex-wrap: wrap; gap: 14px; }
+.hero-meta { margin-top: 40px; display: flex; flex-wrap: wrap; gap: 10px; }
+.chip { font-family: var(--font-mono); font-size: 12.5px; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; }
+
+/* Screenshot frame */
+.frame {
+  border: 1px solid var(--line); border-radius: 14px; background: var(--paper);
+  box-shadow: 0 1px 2px rgba(23,35,30,0.04), 0 24px 60px -24px rgba(27,58,47,0.28);
+  overflow: hidden;
+}
+.frame-bar { display: flex; align-items: center; gap: 7px; padding: 12px 16px; border-bottom: 1px solid var(--line); background: var(--stone); }
+.frame-bar span { width: 10px; height: 10px; border-radius: 50%; background: #D3D8D1; }
+.frame-bar .url { margin-left: 12px; font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+.shot {
+  aspect-ratio: 16 / 10; display: grid; place-items: center; text-align: center; padding: 24px;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 31px, #EEF1EC 31px 32px),
+    linear-gradient(180deg, #FAFBF9, #F2F4EF);
+  color: var(--muted); font-family: var(--font-mono); font-size: 13px;
+}
+.shot b { display: block; color: var(--forest); font-weight: 500; font-size: 14px; margin-bottom: 4px; }
+.shot-img { display: block; width: 100%; height: auto; }
+.stack { position: relative; padding-bottom: 64px; }
+.stack .frame.overlay { position: absolute; right: -24px; bottom: 0; width: 34%; }
+.stack .frame.overlay .frame-bar { padding: 9px 12px; }
+.split.reverse { grid-template-columns: 1.9fr 0.66fr; margin-top: 120px; }
+.contact-photo { border-radius: 12px; overflow: hidden; aspect-ratio: 3 / 2; margin: 0 0 40px; }
+.contact-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* Photo strip */
+.photos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; padding-bottom: 24px; }
+.photo {
+  position: relative; border-radius: 12px; overflow: hidden; aspect-ratio: 4 / 3;
+  background: linear-gradient(160deg, #2D5444 0%, #1B3A2F 55%, #13291F 100%);
+}
+.photo:nth-child(2) { background: linear-gradient(160deg, #6E7F4F, #3F5A3A); }
+.photo:nth-child(3) { background: linear-gradient(160deg, #A58A57, #6B5A3A); }
+.photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.photo figcaption {
+  position: absolute; left: 14px; bottom: 12px; right: 14px;
+  font-family: var(--font-mono); font-size: 12px; color: rgba(255,255,255,0.86);
+}
+
+/* Problem */
+.trio { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border-top: 1px solid var(--ink); }
+.trio > div { padding: 28px 32px 8px 0; display: grid; gap: 12px; align-content: start; }
+.trio > div + div { padding-left: 32px; border-left: 1px solid var(--line); }
+.trio .n { font-family: var(--font-mono); font-size: 13px; color: var(--bronze); }
+.trio h3 { font-size: 22px; line-height: 1.25; }
+.trio p { color: var(--muted); font-size: 17px; }
+.src { margin-top: 36px; font-family: var(--font-mono); font-size: 12.5px; color: var(--muted); }
+
+/* How it works */
+.stone { background: var(--stone); }
+.steps { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; counter-reset: s; }
+.step { background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 22px 20px; display: grid; gap: 8px; align-content: start; position: relative; }
+.step .n { font-family: var(--font-mono); font-size: 12.5px; color: var(--bronze); }
+.step h3 { font-size: 19px; }
+.step p { font-size: 15px; color: var(--muted); line-height: 1.5; }
+.step.final { background: var(--forest); border-color: var(--forest); }
+.step.final h3 { color: #fff; }
+.step.final p { color: #C9D4CE; }
+.step.final .n { color: var(--gold); }
+.ledger {
+  margin-top: 16px; border-radius: 10px; background: var(--forest); color: #F3F4F1;
+  padding: 22px 28px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px 32px;
+}
+.ledger p:first-child { font-weight: 600; font-size: 18px; }
+.ledger .fields { font-family: var(--font-mono); font-size: 13.5px; color: var(--gold); }
+.split { display: grid; grid-template-columns: 0.66fr 1.9fr; gap: 48px; align-items: center; margin-top: 88px; }
+.split h3 { font-size: 30px; line-height: 1.15; margin-bottom: 18px; }
+.ticks { list-style: none; padding: 0; margin: 24px 0 0; display: grid; gap: 14px; }
+.ticks li { padding-left: 28px; position: relative; font-size: 17px; }
+.ticks li::before { content: ""; position: absolute; left: 0; top: 10px; width: 14px; height: 2px; background: var(--bronze); }
+
+/* Proof */
+.proof { background: var(--forest); color: #F3F4F1; }
+.proof .eyebrow { color: var(--gold); }
+.proof .lede { color: #C9D4CE; }
+.chain { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.half { border: 1px solid #3E5A4F; border-radius: 14px; padding: 36px 36px 32px; display: grid; gap: 14px; background: rgba(255,255,255,0.025); }
+.half .path { font-family: var(--font-mono); font-size: 13px; color: #A9BDB3; letter-spacing: 0.02em; }
+.half .path b { color: var(--gold); font-weight: 500; }
+.half .big { font-family: var(--font-mono); font-weight: 500; font-size: clamp(36px, 4.6vw, 56px); line-height: 1.05; letter-spacing: -0.02em; color: #fff; }
+.half .big small { font-size: 0.42em; color: #C9D4CE; letter-spacing: 0; margin-left: 6px; }
+.half p { color: #C9D4CE; font-size: 16px; }
+.dev { display: inline-flex; align-self: start; justify-self: start; font-family: var(--font-mono); font-size: 12.5px; color: var(--forest); background: var(--gold); border-radius: 999px; padding: 4px 12px; }
+.proof .src { color: #A9BDB3; }
+
+/* Compare */
+.compare { width: 100%; border-collapse: collapse; font-size: 16.5px; }
+.compare th { text-align: left; font-family: var(--font-mono); font-weight: 400; font-size: 12.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); padding: 0 20px 14px 0; border-bottom: 1px solid var(--ink); }
+.compare td { padding: 20px 20px 20px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+.compare td:first-child { font-weight: 600; width: 26%; }
+.compare td:nth-child(2) { color: var(--muted); width: 22%; }
+.compare tr.us td { background: #EEF3EE; color: var(--forest); border-bottom: 0; }
+.compare tr.us td:first-child { padding-left: 18px; border-left: 3px solid var(--forest); }
+.compare tr.us td:last-child { padding-right: 18px; }
+.usband { margin-top: 28px; background: #EEF3EE; color: var(--forest); border-left: 3px solid var(--forest); border-radius: 0 12px 12px 0; padding: 26px 30px; display: grid; grid-template-columns: 26% 1fr; gap: 12px 24px; align-items: center; }
+.usband .k { font-family: var(--font-mono); font-size: 17px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--bronze); }
+.usband .t { font-size: 22px; font-weight: 600; margin-top: 4px; }
+.usband > p { color: var(--forest); font-size: 17px; }
+.calc { margin: 0; display: grid; gap: 6px; padding-bottom: 12px; border-bottom: 1px solid #3E5A4F; }
+.calc div { display: flex; justify-content: space-between; gap: 16px; font-size: 16px; color: #C9D4CE; }
+.calc dd { margin: 0; font-family: var(--font-mono); }
+.pullquote { margin-top: 48px; font-family: var(--font-serif); font-style: italic; font-size: clamp(22px, 2.6vw, 30px); line-height: 1.35; color: var(--forest); max-width: 30ch; }
+.table-wrap { overflow-x: auto; }
+
+/* Pilot */
+.phases { display: grid; grid-template-columns: 1fr 48px 1fr 48px 1fr; align-items: stretch; }
+.phase { background: var(--forest); border-radius: 12px; padding: 28px 28px 30px; display: grid; gap: 10px; align-content: start; }
+.phase .n { font-family: var(--font-mono); font-size: 13px; color: var(--gold); }
+.phase h3 { font-size: 22px; color: #fff; }
+.phase p { color: #C9D4CE; font-size: 16.5px; }
+.phase-arrow { display: grid; place-items: center; color: var(--bronze); }
+.phase-arrow svg { width: 28px; height: 16px; }
+.terms { margin-top: 40px; display: grid; grid-template-columns: 1fr 1fr 1.1fr; gap: 16px; }
+.term { background: var(--paper); border: 1px solid var(--line); box-shadow: 0 1px 2px rgba(23,35,30,0.04), 0 12px 32px -20px rgba(27,58,47,0.25); border-radius: 12px; padding: 26px 28px; display: grid; gap: 8px; align-content: start; }
+.term.price { border-color: var(--forest); }
+.term .k { font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.term.price { background: var(--forest); color: #fff; }
+.term.price .k { color: var(--gold); }
+.term .price-line { font-size: 30px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.15; }
+.term.price p:last-child { color: #C9D4CE; font-size: 16px; }
+
+/* Contact */
+.contact { border-top: 1px solid var(--line); }
+.contact .wrap { display: grid; grid-template-columns: 1.3fr 1fr; gap: 64px; align-items: end; }
+.contact h2 { font-size: clamp(34px, 4.4vw, 54px); line-height: 1.08; letter-spacing: -0.03em; }
+.person { display: grid; gap: 6px; border-left: 2px solid var(--bronze); padding-left: 24px; }
+.person .name { font-size: 22px; font-weight: 600; }
+.person p { color: var(--muted); font-size: 16px; }
+.person .mail { font-family: var(--font-mono); color: var(--forest); font-size: 17px; margin-top: 10px; }
+.person .links { display: flex; gap: 20px; margin-top: 14px; font-size: 15px; }
+
+footer { padding: 36px 0 48px; font-size: 14px; color: var(--muted); }
+footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 16px; border-top: 1px solid var(--line); padding-top: 28px; }
+footer nav { display: flex; gap: 24px; }
+footer a { text-decoration: none; }
+footer a:hover { color: var(--ink); }
+
+.mail-dialog { position: absolute; left: 0; right: 0; z-index: 50; display: none; justify-items: center; padding: 0 20px; }
+.mail-dialog.open { display: grid; }
+.mail-card { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 28px 30px; max-width: 420px; width: 100%; display: grid; gap: 14px; box-shadow: 0 24px 60px -20px rgba(0,0,0,0.4); }
+.mail-card h3 { font-size: 20px; }
+.mail-card .addr { font-family: var(--font-mono); font-size: 17px; color: var(--forest); }
+.mail-card .row { display: flex; gap: 10px; flex-wrap: wrap; }
+.mail-card button { font: inherit; font-size: 15px; cursor: pointer; }
+
+/* Hover lift on images and screenshots */
+.frame, .photo, .half { transition: transform 260ms cubic-bezier(.2,.7,.2,1), box-shadow 260ms ease; }
+.photo { box-shadow: 0 0 0 rgba(0,0,0,0); }
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .half:hover { transform: translateY(-6px); border-color: var(--gold); background: rgba(255,255,255,0.06); box-shadow: 0 28px 56px -24px rgba(0,0,0,0.55); }
+  .frame:hover, .photo:hover { transform: translateY(-6px) scale(1.012); box-shadow: 0 2px 4px rgba(23,35,30,0.06), 0 32px 64px -24px rgba(27,58,47,0.42); }
+  .stack .frame.overlay:hover { z-index: 2; }
+}
+
+/* Scroll reveal: only applied by script to elements below the first screen */
+.reveal { opacity: 0; transform: translateY(26px); transition: opacity 700ms ease, transform 700ms cubic-bezier(.2,.7,.2,1); }
+.reveal.in { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) { .reveal { transform: none; transition: opacity 500ms ease; } }
+
+/* Load moment: the hero text settles in, from a visible resting state */
+@media (prefers-reduced-motion: no-preference) {
+  .hero-copy > * { animation: settle 700ms cubic-bezier(.2,.7,.2,1) both; }
+  .hero-copy > *:nth-child(2) { animation-delay: 60ms; }
+  .hero-copy > *:nth-child(3) { animation-delay: 120ms; }
+  .hero-copy > *:nth-child(4) { animation-delay: 180ms; }
+  .hero-copy > *:nth-child(5) { animation-delay: 240ms; }
+  @keyframes settle { from { transform: translateY(10px); opacity: 0.35; } to { transform: none; opacity: 1; } }
+}
+
+@media (max-width: 960px) {
+  .hero .wrap, .split, .split.reverse, .contact .wrap { grid-template-columns: 1fr; gap: 48px; }
+  .split.reverse { margin-top: 88px; }
+  .split.reverse > div { order: -1; }
+  .steps { grid-template-columns: 1fr 1fr; }
+  .step.final { grid-column: 1 / -1; }
+  .chain, .phases, .terms, .trio, .usband { grid-template-columns: 1fr; }
+  .trio > div + div { padding-left: 0; border-left: 0; border-top: 1px solid var(--line); }
+  .photos { gap: 10px; }
+  .stack { padding-bottom: 0; display: grid; gap: 16px; }
+  .stack .frame.overlay { position: static; width: 60%; justify-self: end; }
+  .phases { grid-template-columns: 1fr; }
+  .phase-arrow { height: 40px; }
+  .phase-arrow svg { transform: rotate(90deg); }
+  .nav-links a:not(.btn) { display: none; }
+  .section { padding: 80px 0; }
+}
+@media (max-width: 480px) {
+  .wrap { padding: 0 18px; }
+  .steps { grid-template-columns: 1fr; }
+  .photos { grid-template-columns: 1fr; }
+  .photo { aspect-ratio: 16 / 10; }
+}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="ForestVerify, back to top">
+      <svg width="22" height="22" viewBox="-1 -1 34 33" aria-hidden="true"><defs><linearGradient id="fvbolt" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#9A35F6"/><stop offset="1" stop-color="#6648F6"/></linearGradient></defs><path d="M7 0 L27 0.5 L22 11 L32 11 L24.5 22 L18 31 L16 31 L15 22 L6 22 L11 12 L0 12 Z" fill="url(#fvbolt)" stroke="url(#fvbolt)" stroke-width="1" stroke-linejoin="round"/></svg>
+      ForestVerify
+    </a>
+    <nav class="nav-links" aria-label="Main">
+      <a href="#how">How it works</a>
+      <a href="#proof">Proof</a>
+      <a href="#pilot">Pilot</a>
+      <a class="btn btn-primary" href="mailto:pascal@forestverify.com?subject=ForestVerify%20pilot%20request&amp;body=Hi%20Pascal%2C%0A%0AI%27d%20like%20to%20discuss%20a%20ForestVerify%20pilot.%0A%0AOrganisation%3A%0AProject%20and%20standard%20%28e.g.%20VM0047%29%3A%0AArea%20%28ha%29%3A%0ANext%20monitoring%20or%20verification%20date%3A%0A%0ABest%20regards%2C%0A">Request a pilot</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+
+  <section class="hero">
+    <div class="wrap">
+      <div class="hero-copy">
+        <p class="eyebrow">Audit-proof MRV for ARR projects</p>
+        <h1>Every number sourced. <em>Every decision traceable.</em></h1>
+        <p class="lede">ForestVerify runs your inventory data through the methodology to the creditable removals and documents every parameter choice, so your verifier can follow each step with fewer findings rounds.</p>
+        <div class="cta-row">
+          <a class="btn btn-primary" href="mailto:pascal@forestverify.com?subject=ForestVerify%20pilot%20request&amp;body=Hi%20Pascal%2C%0A%0AI%27d%20like%20to%20discuss%20a%20ForestVerify%20pilot.%0A%0AOrganisation%3A%0AProject%20and%20standard%20%28e.g.%20VM0047%29%3A%0AArea%20%28ha%29%3A%0ANext%20monitoring%20or%20verification%20date%3A%0A%0ABest%20regards%2C%0A">Request a pilot</a>
+          <a class="btn btn-ghost" href="#how">See how it works</a>
+        </div>
+        <div class="hero-meta">
+          <span class="chip">Today: Verra VCS · VM0047 v1.1</span>
+          <span class="chip">Next: Forest Climate Standard, CRCF, Gold Standard, Isometric</span>        </div>
+      </div>
+      <figure class="frame" style="margin:0">
+        <div class="frame-bar"><span></span><span></span><span></span><p class="url">app.forestverify.com / calculation</p></div>
+        <img class="shot-img" src="img/shot-calculation.png" width="1600" height="848" alt="ForestVerify calculation tab for Brazil Cerrado 1, showing carbon stock change, uncertainty deduction and removals of 261,499.8835 tCO2e">
+
+      </figure>
+    </div>
+  </section>
+
+  <div class="wrap">
+    <div class="photos" aria-label="ARR project photos">
+      <figure class="photo" style="margin:0"><img src="img/measuring.jpg" width="1600" height="900" alt="Field worker measuring tree diameter with a yellow tape in a forest plot"></figure>
+      <figure class="photo" style="margin:0"><img src="img/planting.jpg" width="1000" height="1778" alt="Hands planting a seedling in red soil"></figure>
+      <figure class="photo" style="margin:0"><img src="img/restoration.jpg" width="1000" height="1500" alt="Young plantings on a cleared slope in front of tall tropical forest" style="object-position: center 70%"></figure>
+    </div>
+  </div>
+
+  <section class="section" id="problem">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">The problem</p>
+        <h2>The calculation is rarely the problem. Its justification is.</h2>
+      </div>
+      <div class="trio">
+        <div>
+          <p class="n">01</p>
+          <h3>Everyone calculates differently</h3>
+          <p>Every developer has their own calculation workbook. Which formula and which value sit where is hard for verifiers to trace.</p>
+        </div>
+        <div>
+          <p class="n">02</p>
+          <h3>Values without origin</h3>
+          <p>Wood densities and biomass functions are carried over from report to report without anyone checking whether they fit the species and region.</p>
+        </div>
+        <div>
+          <p class="n">03</p>
+          <h3>Costly queries</h3>
+          <p>Findings rounds with the verifier take from one week to several months. When the responsible person leaves, the reasoning behind the calculation leaves too.</p>
+        </div>
+      </div>
+      <p class="src">Basis: interviews with developers, consultants and Verra, October and November 2026</p>
+    </div>
+  </section>
+
+  <section class="section stone" id="how">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">How it works</p>
+        <h2>From the plot measurement to the creditable removals</h2>
+        <p class="lede">The calculation follows the methodology step by step. For every intermediate value you see the equation used and the evidence behind each input.</p>
+      </div>
+      <div class="steps">
+        <div class="step"><p class="n">01</p><h3>Plot data</h3><p>Species, diameter, height per tree and plot</p></div>
+        <div class="step"><p class="n">02</p><h3>Biomass</h3><p>Allometry, wood density, root-to-shoot ratio</p></div>
+        <div class="step"><p class="n">03</p><h3>Carbon</h3><p>Carbon fraction, conversion to CO₂e</p></div>
+        <div class="step"><p class="n">04</p><h3>Deductions</h3><p>Benchmark, uncertainty, leakage, buffer</p></div>
+        <div class="step final"><p class="n">05</p><h3>Removals</h3><p>Creditable, after all deductions</p></div>
+      </div>
+      <div class="ledger">
+        <p>Every step rests on evidence</p>
+        <p class="fields">Source reference · Original wording · Justification · Author · Version</p>
+      </div>
+      <p class="src" style="margin-top:14px">Benchmark and leakage enter as documented inputs.</p>
+
+      <div class="split">
+        <div>
+          <p class="eyebrow" style="margin-bottom:14px">Document</p>
+          <h3>No justification, no saving.</h3>
+          <p class="lede" style="font-size:18px">Every value in the calculation points to where it comes from and why it was chosen. The calculation is deterministic and open, so there is no black box.</p>
+          <ul class="ticks">
+            <li>Each parameter carries its exact source, the original wording and a written reason</li>
+            <li>A value without evidence cannot be saved</li>
+            <li>Justifications are written by a person, not generated</li>
+          </ul>
+        </div>
+        <div class="stack">
+          <figure class="frame" style="margin:0">
+            <div class="frame-bar"><span></span><span></span><span></span><p class="url">app.forestverify.com / parameters</p></div>
+            <img class="shot-img" src="img/shot-parameters.png" width="1600" height="921" alt="Methodology parameters with values, units and evidence status, for example carbon fraction 0.47 from IPCC 2006">
+          </figure>
+          <figure class="frame overlay" style="margin:0">
+            <div class="frame-bar"><span></span><span></span><span></span></div>
+            <img class="shot-img" src="img/shot-evidence.png" width="700" height="1178" alt="Evidence detail for carbon fraction: source, locator, quote, interpretation, author and version">
+          </figure>
+        </div>
+      </div>
+
+      <div class="split reverse">
+        <figure class="frame" style="margin:0">
+          <div class="frame-bar"><span></span><span></span><span></span><p class="url">app.forestverify.com / audit-trail</p></div>
+          <img class="shot-img" src="img/shot-audit.png" width="1600" height="880" alt="Audit trail for wood density: the current evidence version and the superseded earlier version, which stays in the history">
+        </figure>
+        <div>
+          <p class="eyebrow" style="margin-bottom:14px">Log</p>
+          <h3>Nothing is overwritten.</h3>
+          <p class="lede" style="font-size:18px">Every change becomes a new version. The earlier one stays in the history, so your verifier sees the full path to today's numbers.</p>
+          <ul class="ticks">
+            <li>Every change is recorded: who, when, why</li>
+            <li>Superseded evidence remains visible next to the current version</li>
+            <li>Decisions outlast any change in staff, even years later</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section proof" id="proof">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">The proof · Brazil Cerrado 1, VCS 5511</p>
+        <h2>Two sections tested against a registered Verra project. Both match exactly.</h2>
+      </div>
+      <div class="chain">
+        <div class="half">
+          <p class="path"><b>Tree</b> → Plot → Per hectare</p>
+          <p class="big">19.7225<small>tCO₂e/ha</small></p>
+          <p>From 443 individual trees in 111 plots to the hectare value of the native stratum.</p>
+          <span class="dev">Deviation from the workbook: 0.00 %</span>
+        </div>
+        <div class="half">
+          <p class="path"><b>Stock</b> → Deductions → VCUs</p>
+          <dl class="calc">
+            <div><dt>Creditable removals</dt><dd>261,499.88 tCO₂e</dd></div>
+            <div><dt>minus non-permanence buffer</dt><dd>− 12 %</dd></div>
+          </dl>
+          <p class="big">230,119.90<small>VCUs issued</small></p>
+          <p>From total stocks via stock change, uncertainty, benchmark and vintages to the creditable removals; after the buffer, the VCUs issued for the whole project.</p>
+          <span class="dev">Deviation from the verified report: 0.00 %</span>
+        </div>
+      </div>
+      <p class="src">Section 1: live biomass, Time-1 inventory; reference is the public workbook version V01.<br>Section 2: starts from the workbook's total stocks; 1 VCU = 1 tCO₂e. Connecting both sections for all strata is in progress.</p>
+    </div>
+  </section>
+
+  <section class="section" id="positioning">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Positioning</p>
+        <h2>The gap ForestVerify closes</h2>
+      </div>
+      <div class="table-wrap">
+        <table class="compare">
+          <thead><tr><th>Common today</th><th>Strength</th><th>Weakness</th></tr></thead>
+          <tbody>
+            <tr><td>Excel template or own workbook</td><td>Flexible, free</td><td>Every file different, origin of values unclear, verifiers recalculate by hand</td></tr>
+            <tr><td>Consulting firm</td><td>Experience, full service</td><td>Costly per report; the calculation and the knowledge stay with the consultant</td></tr>
+            <tr><td>dMRV and remote sensing</td><td>Large areas, fast</td><td>No documented calculation chain from plot data to credit</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="usband">
+        <div><p class="k">ForestVerify</p><p class="t">Open, documented, logged</p></div>
+        <p>Audit-ready in-house and neutral for every verifier. It complements existing dMRV instead of replacing it.</p>
+      </div>
+      <p class="pullquote">Remote sensing shows how much biomass stands on the land. ForestVerify shows why the number in the report is right.</p>
+    </div>
+  </section>
+
+  <section class="section stone" id="pilot">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Pilot</p>
+        <h2>One project, three months</h2>
+        <p class="lede">We map your project in ForestVerify together and calculate it in parallel to your existing workbook, with every deviation explained.</p>
+      </div>
+      <div class="phases">
+        <div class="phase"><p class="n">Weeks 1 to 2</p><h3>Map the calculation logic</h3><p>Configure methodology, carbon pools, biomass functions and factors for your project.</p></div>
+        <div class="phase-arrow" aria-hidden="true"><svg viewBox="0 0 28 16"><path d="M0 8 H24 M18 2 L25 8 L18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="phase"><p class="n">Weeks 3 to 8</p><h3>Calculate in parallel</h3><p>Run your inventory data and document every parameter choice with source and justification.</p></div>
+        <div class="phase-arrow" aria-hidden="true"><svg viewBox="0 0 28 16"><path d="M0 8 H24 M18 2 L25 8 L18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="phase"><p class="n">Weeks 9 to 12</p><h3>Hand over the evidence package</h3><p>Audit-ready documents for your verifier and a reconciliation with your existing calculation.</p></div>
+      </div>
+      <div class="terms">
+        <div class="term"><p class="k">You bring</p><p>Inventory data for one project, a contact person and, after a successful pilot, a reference.</p></div>
+        <div class="term"><p class="k">You get</p><p>Evidence package, reconciliation with your calculation and direct influence on development.</p></div>
+        <div class="term price"><p class="k">Terms</p><p class="price-line">€1,500</p><p>for the full three-month pilot, then 50 % off the first annual subscription.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section contact" id="contact">
+    <div class="wrap">
+      <h2>Let's test ForestVerify on one of your projects.</h2>
+      <div class="person">
+        <p class="name">Pascal Pfohlmann</p>
+        <p>Founder ForestVerify · Forest Carbon Specialist</p>
+        <p class="mail"><a href="mailto:pascal@forestverify.com">pascal@forestverify.com</a></p>
+        <div class="links">
+          <a href="https://www.linkedin.com/in/pascal-pfohlmann/">LinkedIn</a>
+          <a href="mailto:pascal@forestverify.com?subject=ForestVerify%20pilot%20request&amp;body=Hi%20Pascal%2C%0A%0AI%27d%20like%20to%20discuss%20a%20ForestVerify%20pilot.%0A%0AOrganisation%3A%0AProject%20and%20standard%20%28e.g.%20VM0047%29%3A%0AArea%20%28ha%29%3A%0ANext%20monitoring%20or%20verification%20date%3A%0A%0ABest%20regards%2C%0A">Request a pilot</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>© 2026 ForestVerify · Waldsee, Germany</p>
+    <nav aria-label="Legal">
+      <a href="impressum.html">Impressum</a>
+      <a href="datenschutz.html">Datenschutz</a>
+    </nav>
+  </div>
+</footer>
+
+<div class="mail-dialog" id="mailDialog" role="dialog" aria-modal="true" aria-labelledby="mailTitle">
+  <div class="mail-card">
+    <h3 id="mailTitle">Request a pilot</h3>
+    <p>Write to me at</p>
+    <p class="addr">pascal@forestverify.com</p>
+    <p style="color:var(--muted);font-size:15px">Ideally with your organisation, project and standard, area in hectares and next monitoring date.</p>
+    <div class="row">
+      <button type="button" class="btn btn-primary" id="mailCopy">Copy address</button>
+      <button type="button" class="btn btn-ghost" id="mailClose">Close</button>
+    </div>
+  </div>
+</div>
+<script>
+(function () {
+  var embedded = false;
+  try { embedded = window.self !== window.top; } catch (e) { embedded = true; }
+  if (!embedded) return;
+  var dlg = document.getElementById('mailDialog');
+  document.querySelectorAll('a[href^="mailto:"]').forEach(function (a) {
+    a.addEventListener('click', function (ev) { ev.preventDefault(); ev.stopPropagation(); var r = a.getBoundingClientRect(); dlg.style.top = (window.scrollY + r.bottom + 12) + 'px'; dlg.classList.add('open'); document.getElementById('mailCopy').focus({ preventScroll: true }); });
+  });
+  document.getElementById('mailClose').addEventListener('click', function () { dlg.classList.remove('open'); });
+  document.addEventListener('click', function (ev) { if (dlg.classList.contains('open') && !ev.target.closest('.mail-card')) dlg.classList.remove('open'); });
+  document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape') dlg.classList.remove('open'); });
+  document.getElementById('mailCopy').addEventListener('click', function () {
+    var b = this;
+    try { navigator.clipboard.writeText('pascal@forestverify.com').then(function () { b.textContent = 'Copied'; }, function () { b.textContent = 'Select and copy the address'; }); } catch (e) { b.textContent = 'Select and copy the address'; }
+  });
+})();
+(function () {
+  if (!('IntersectionObserver' in window)) return;
+  var groups = ['.photos', '.trio', '.steps', '.chain', '.phases', '.terms', '.compare tbody'];
+  var singles = ['.section-head', '.ledger', '.split > div', '.split > figure', '.pullquote', '.src', '.contact h2', '.person'];
+  var items = [];
+  groups.forEach(function (sel) {
+    document.querySelectorAll(sel).forEach(function (g) {
+      Array.prototype.forEach.call(g.children, function (el, i) { el.style.transitionDelay = (i * 90) + 'ms'; items.push(el); });
+    });
+  });
+  singles.forEach(function (sel) { document.querySelectorAll(sel).forEach(function (el) { items.push(el); }); });
+  var ioWorks = false;
+  var io = new IntersectionObserver(function (entries) {
+    ioWorks = true;
+    entries.forEach(function (e) {
+      if (e.isIntersecting) {
+        e.target.classList.add('in');
+        io.unobserve(e.target);
+        setTimeout(function () { e.target.style.transitionDelay = ''; e.target.classList.remove('reveal', 'in'); }, 1600);
+      }
+    });
+  }, { threshold: 0.15 });
+  items.forEach(function (el) { el.classList.add('reveal'); io.observe(el); });
+  setTimeout(function () {
+    if (!ioWorks) document.querySelectorAll('.reveal').forEach(function (el) { el.classList.remove('reveal'); });
+  }, 3000);
+})();
+</script>
+</body>
+</html>
